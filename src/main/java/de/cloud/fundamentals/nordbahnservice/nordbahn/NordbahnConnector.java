@@ -1,13 +1,13 @@
 package de.cloud.fundamentals.nordbahnservice.nordbahn;
 
 import de.cloud.fundamentals.nordbahnservice.XmlParser;
+import de.cloud.fundamentals.nordbahnservice.userfeedback.I18n;
 import org.springframework.stereotype.Service;
-import userfeedback.I18n;
 
 @Service
 public class NordbahnConnector {
 
-    private static final I18n USER_FEEDBACK = new I18n("messages");
+    private static final I18n USER_FEEDBACK = new I18n();
 
     public String getNordbahnMessage(String messageText) {
         String message = USER_FEEDBACK.get("message.default");

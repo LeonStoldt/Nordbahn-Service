@@ -22,14 +22,14 @@ public class XmlParser {
 
     private static final String NORDBAHN_BASE_URL = "https://datnet-nbe.etc-consult.de/datnet-nbe/xml?bhf={station}&id_prod=DPN,Bus,DPN-G&format=xml&callback=?";
     private static final int ONE_HOUR_IN_MILLIS = 3600000;
-    public static final String DEPARTURE = "abfahrt";
-    public static final int TRAINLINE_INDEX = 2;
-    public static final int DESTINATION_INDEX = 3;
-    public static final int FORECAST_INDEX = 4;
-    public static final int FORECAST_MINUTES_INDEX = 5;
-    public static final int RAIL_INDEX = 6;
-    public static final int CANCELLED_INDEX = 7;
-    public static final int SHUTTLE_SERVICE_INDEX = 8;
+    private static final String DEPARTURE = "abfahrt";
+    private static final int TRAINLINE_INDEX = 2;
+    private static final int DESTINATION_INDEX = 3;
+    private static final int FORECAST_INDEX = 4;
+    private static final int FORECAST_MINUTES_INDEX = 5;
+    private static final int RAIL_INDEX = 6;
+    private static final int CANCELLED_INDEX = 7;
+    private static final int SHUTTLE_SERVICE_INDEX = 8;
 
     private DocumentBuilder builder;
 

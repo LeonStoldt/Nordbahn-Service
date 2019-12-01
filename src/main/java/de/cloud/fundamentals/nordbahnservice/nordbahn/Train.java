@@ -64,7 +64,7 @@ public class Train {
     @Override
     public String toString() {
         DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        String result = "\n*" + dateFormat.format(time) + "* - " + trainLine + " nach " + destination.normalize();
+        String result = "\n*" + dateFormat.format(time) + "* - " + trainLine + " nach " + destination.getOfficialName();
 
         if (cancelled) {
             result += (shuttleService)

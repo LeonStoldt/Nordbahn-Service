@@ -1,11 +1,14 @@
 package de.cloud.fundamentals.nordbahnservice.nordbahn;
 
+import de.cloud.fundamentals.nordbahnservice.userfeedback.I18n;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Train {
 
+    private static final I18n USER_FEEDBACK = new I18n();
     private static final int ONE_MINUTE_IN_MILLIS = 60000;
     private static final int MAX_RAIL_NUMBER = 14;
 
@@ -64,22 +67,25 @@ public class Train {
     @Override
     public String toString() {
         DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        String result = "\n*" + dateFormat.format(time) + "* - " + trainLine + " nach " + destination.getOfficialName();
+        String result = USER_FEEDBACK.format("message.train", dateFormat.format(time), trainLine, destination.getOfficialName());
 
         if (cancelled) {
             result += (shuttleService)
-                    ? ("\n*ACHTUNG:* Zug fällt aus. Schienenersatzverkehr ist eingerichtet.")
-                    : ("\n*ACHTUNG:* Zug fällt aus. Es ist kein Schienenersatzverkehr eingerichtet.");
+                    ? USER_FEEDBACK.get("message.shuttle-service.true")
+                    : USER_FEEDBACK.get("message.shuttle-service.false");
         } else {
             boolean delayed = forecastMin > 5;
             result += (delayed)
-                    ? (" (*+" + forecastMin + "min*)\n")
-                    : (" (+" + forecastMin + "min)\n");
+                    ? USER_FEEDBACK.format("message.forecast.delayed.true", forecastMin)
+                    : USER_FEEDBACK.format("message.forecast.delayed.false", forecastMin);
 
-            if (rail < MAX_RAIL_NUMBER) result += "fährt von Gleis: " + rail;
+            if (rail < MAX_RAIL_NUMBER) result += USER_FEEDBACK.format("message.rail", rail);
 
-            if (delayed)
-                result += " | voraussichtlich " + dateFormat.format(new Date(time.getTime() + forecastMin * ONE_MINUTE_IN_MILLIS));
+            if (delayed) {
+                String newArrivalTime = dateFormat.format(new Date(time.getTime() + forecastMin * ONE_MINUTE_IN_MILLIS));
+                result += USER_FEEDBACK.format("message.delayed.new-time", newArrivalTime);
+            }
+
         }
         return result + "\n";
     }

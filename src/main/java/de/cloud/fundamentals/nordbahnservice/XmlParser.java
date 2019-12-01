@@ -43,37 +43,37 @@ import java.util.Optional;
  */
 public class XmlParser {
 
-    private static final I18n USER_FEEDBACK = new I18n();
     private static final String NORDBAHN_URL_STATION_KEY = "{station}";
     private static final String NORDBAHN_BASE_URL = "https://datnet-nbe.etc-consult.de/datnet-nbe/xml?bhf=" + NORDBAHN_URL_STATION_KEY + "&id_prod=DPN,Bus,DPN-G&format=xml&callback=?";
     private static final int ONE_HOUR_IN_MILLIS = 3600000;
-    public static final String INQUIRY_TAG = "auskunft";
-    public static final String STATION_NAME_TAG = "name";
-    public static final String TIME_NOW_TAG = "stand";
-    public static final String DEPARTURE_TAG = "abfahrt";
-    public static final String TRAIN_TIME_TAG = "zeit";
-    public static final String TRAIN_LINE_TAG = "linie";
-    public static final String TRAIN_DESTINATION_TAG = "ziel";
-    public static final String TRAIN_FORECAST_TAG = "prognose";
-    public static final String TRAIN_FORECAST_MIN_TAG = "prognosemin";
-    public static final String TRAIN_RAIL_TAG = "gleis";
-    public static final String TRAIN_CANCELLED_TAG = "ausfall";
-    public static final String TRAIN_SHUTTLE_SERVICE_TAG = "sev";
+    private static final String INQUIRY_TAG = "auskunft";
+    private static final String STATION_NAME_TAG = "name";
+    private static final String TIME_NOW_TAG = "stand";
+    private static final String DEPARTURE_TAG = "abfahrt";
+    private static final String TRAIN_TIME_TAG = "zeit";
+    private static final String TRAIN_LINE_TAG = "linie";
+    private static final String TRAIN_DESTINATION_TAG = "ziel";
+    private static final String TRAIN_FORECAST_TAG = "prognose";
+    private static final String TRAIN_FORECAST_MIN_TAG = "prognosemin";
+    private static final String TRAIN_RAIL_TAG = "gleis";
+    private static final String TRAIN_CANCELLED_TAG = "ausfall";
+    private static final String TRAIN_SHUTTLE_SERVICE_TAG = "sev";
 
-    private final XMLInputFactory factory;
-    private final SimpleDateFormat parser;
+    private static final I18n USER_FEEDBACK = new I18n();
+    private static final XMLInputFactory FACTORY = createFactory();
+    private static final SimpleDateFormat PARSER = new SimpleDateFormat("HH:mm");
 
-    public XmlParser() {
-        this.parser = new SimpleDateFormat("HH:mm");
-        this.factory = XMLInputFactory.newInstance();
+    private static XMLInputFactory createFactory() {
+        XMLInputFactory factory = XMLInputFactory.newInstance();
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
         factory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+        return factory;
     }
 
-    public String readXml(Station station) throws XMLStreamException {
+    public static String parse(Station station) throws XMLStreamException {
         XMLStreamReader xmlReader = null;
         try {
-            xmlReader = factory.createXMLStreamReader(getXmlFromUrl(station));
+            xmlReader = FACTORY.createXMLStreamReader(getXmlFromUrl(station));
             return readDocument(xmlReader);
         } catch (IOException | ParseException e) {
             throw new XMLStreamException("failed parsing with exception:", e);
@@ -82,7 +82,7 @@ public class XmlParser {
         }
     }
 
-    public String readDocument(XMLStreamReader xmlReader) throws ParseException, XMLStreamException {
+    private static String readDocument(XMLStreamReader xmlReader) throws ParseException, XMLStreamException {
         String stationName = "";
         Date time = null;
         List<Train> trains = new ArrayList<>();
@@ -100,7 +100,7 @@ public class XmlParser {
         trains.forEach(data::append);
 
         if (!(stationName.equals("") || time == null)) {
-            return USER_FEEDBACK.format("message.response", stationName, parser.format(time), data);
+            return USER_FEEDBACK.format("message.response-header", stationName, PARSER.format(time), data);
         }
         throw new XMLStreamException("invalid parsing values");
     }
@@ -124,7 +124,7 @@ public class XmlParser {
         }
     }
 
-    private Pair<Metadata, List<Train>> readContent(XMLStreamReader reader) throws XMLStreamException, ParseException {
+    private static Pair<Metadata, List<Train>> readContent(XMLStreamReader reader) throws XMLStreamException, ParseException {
         List<Train> trains = new ArrayList<>();
         String station = "";
         Date timeNow = Date.from(Instant.now());
@@ -137,7 +137,7 @@ public class XmlParser {
                         station = reader.getElementText();
                         break;
                     case TIME_NOW_TAG:
-                        timeNow = parser.parse(reader.getElementText());
+                        timeNow = PARSER.parse(reader.getElementText());
                         break;
                     case DEPARTURE_TAG:
                         Optional<Train> optionalTrain = readTrain(reader, timeNow);
@@ -153,7 +153,7 @@ public class XmlParser {
         throw new XMLStreamException("Premature end of file");
     }
 
-    private Optional<Train> readTrain(XMLStreamReader reader, @NotNull Date timeNow) throws XMLStreamException, ParseException {
+    private static Optional<Train> readTrain(XMLStreamReader reader, @NotNull Date timeNow) throws XMLStreamException, ParseException {
         Date trainTme = null;
         String trainLine = null;
         Station destination = null;
@@ -170,7 +170,7 @@ public class XmlParser {
             if (next == XMLStreamConstants.START_ELEMENT) {
 
                 if (trainTme == null && reader.getLocalName().equals(TRAIN_TIME_TAG)) {
-                    trainTme = parser.parse(reader.getElementText());
+                    trainTme = PARSER.parse(reader.getElementText());
                     isTrainOfNextHour = isTrainOfNextHour(trainTme, timeNow);
 
                 } else if (trainTme != null && isTrainOfNextHour) {
@@ -209,15 +209,15 @@ public class XmlParser {
         throw new XMLStreamException("Premature end of file");
     }
 
-    private boolean isTrainOfNextHour(@NotNull Date trainTime, @NotNull Date timeNow) {
+    private static boolean isTrainOfNextHour(@NotNull Date trainTime, @NotNull Date timeNow) {
         return trainTime.compareTo(new Date(timeNow.getTime() + ONE_HOUR_IN_MILLIS)) <= 0;
     }
 
-    private InputStream getXmlFromUrl(Station station) throws IOException {
+    private static InputStream getXmlFromUrl(Station station) throws IOException {
         return new URL(getUrl(station)).openStream();
     }
 
-    private String getUrl(Station station) {
+    private static String getUrl(Station station) {
         return NORDBAHN_BASE_URL.replace(NORDBAHN_URL_STATION_KEY, station.toString());
     }
 }

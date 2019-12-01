@@ -15,7 +15,7 @@ public class NordbahnConnector {
         String response;
         try {
             Station station = Station.ofMessage(messageText);
-            response = new XmlParser().readXml(station);
+            response = XmlParser.parse(station);
         } catch (IllegalArgumentException | XMLStreamException e) {
             response = USER_FEEDBACK.get("message.default");
         }

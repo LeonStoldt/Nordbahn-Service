@@ -22,7 +22,7 @@ public class Controller {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/", produces = JSON)
+    @GetMapping("/")
     public String getStatus() {
         return "NordbahnService is active.";
     }
